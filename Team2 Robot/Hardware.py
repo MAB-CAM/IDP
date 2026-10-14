@@ -1,6 +1,6 @@
 class Motor:
-    def __init__(self, dirPin, PWMPin):
-        self.mDir = Pin(dirPin, Pin.OUT)  # set motor direction pin
+    def __init__(self, dir_pin, PWMPin):
+        self.mDir = Pin(dir_pin, Pin.OUT)  # set motor direction pin
         self.pwm = PWM(Pin(PWMPin))  # set motor pwm pin
         self.pwm.freq(1000)  # set PWM frequency
         self.pwm.duty_u16(0)  # set duty cycle - 0=off
@@ -53,4 +53,10 @@ class Wheels:
         sleep(self.CORRECTION_TIME)
         self.__right_wheel.forward()
         
-        
+
+class LineSensor:
+    def __init__(self, dig_pin):
+        self.__sensor = Pin(dig_pin, Pin.IN)
+
+    def on_line(self):
+        return self.__sensor.value()
