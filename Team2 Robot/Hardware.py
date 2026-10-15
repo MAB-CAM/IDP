@@ -32,24 +32,32 @@ class Wheels:
         self.__right_wheel.forward()
         while not on_track():
             sleep(0.05)
+        self.__left_wheel.stop()
+        self.__right_wheel.stop()
             
     def right(self, on_track):
         self.__left_wheel.forward()
         self.__right_wheel.backward()
         while not on_track():
             sleep(0.05)
+        self.__left_wheel.stop()
+        self.__right_wheel.stop()
     
     def stop(self):
         self.__left_wheel.stop()
         self.__right_wheel.stop()
         
-    def correct_left(self):
+    def correct_left(self, on_track):
         self.__left_wheel.forward(80)
+        while not on_track():
+            sleep(0.05)
         sleep(self.CORRECTION_TIME)
         self.__left_wheel.forward()
         
-    def correct_right(self):
+    def correct_right(self, on_track):
         self.__right_wheel.forward(80)
+        while not on_track():
+            sleep(0.05)
         sleep(self.CORRECTION_TIME)
         self.__right_wheel.forward()
         
