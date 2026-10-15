@@ -1,3 +1,6 @@
+from machine import Pin, PWM
+from utime import sleep
+
 class Motor:
     def __init__(self, dir_pin, PWMPin):
         self.mDir = Pin(dir_pin, Pin.OUT)  # set motor direction pin
@@ -22,6 +25,7 @@ class Wheels:
         self.__left_wheel = Motor(4,5)
         self.__right_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.5
+        self.__TURN_TIME = 0.5
         
     def forward(self):
         self.__left_wheel.forward()
@@ -30,16 +34,14 @@ class Wheels:
     def left(self, on_track):
         self.__left_wheel.backward()
         self.__right_wheel.forward()
-        while not on_track():
-            sleep(0.05)
+        sleep(self.__TURN_TIME)
         self.__left_wheel.stop()
         self.__right_wheel.stop()
             
     def right(self, on_track):
         self.__left_wheel.forward()
         self.__right_wheel.backward()
-        while not on_track():
-            sleep(0.05)
+        sleep(self.__TURN_TIME)
         self.__left_wheel.stop()
         self.__right_wheel.stop()
     
