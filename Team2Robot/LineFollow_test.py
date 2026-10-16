@@ -133,6 +133,7 @@ class LineFollow:
             self.__wheels.correct_left(self._on_track)
     
     def __travel_with_counter(self, turn_detect, count, previously_on = False):
+        self.__wheels.forward()
         while count > 0:
             self.__stay_on_line()
             if turn_detect():
@@ -167,20 +168,22 @@ class LineFollow:
         if start_count > 3:
             print("THIS IS A RACK BAY")
             start_count -= 1
-        self.__wheels.forward()
         self.__travel_with_counter(start_count, turn_sensor)
         self.__calibrated_turn(direction)
         print("FINISHED START SIDE")
         
         mid_count = 2
-        self.__wheels.forward()
         self.__travel_with_counter(start_count, lambda x: self._on_track() and self.__left_sensor.on_line() and self.__right_sensor.on_line())
         self.__wheels.stop()
         print("RETURNED TO START")
         
     
     def go_from_start(self, finish, orientation='f'):
-        # implement orientation
+        if orientation == 'f':
+            if finish[0] == 'l':
+                self.__wheels.left()
+            if finish[0] == 'r':
+                self.__wheels.right()
         print("GOING FROM START")
         if finish[0] == 'r':
             self.__calibrated_turn(self.__wheels.right)
@@ -192,13 +195,11 @@ class LineFollow:
             turn_sensor = self.__right_sensor
         mid_count = 2
         previously_on = False if orientation=='f' else True
-        self.__wheels.forward()
         self.__travel_with_counter(turn_sensor, mid_count, previously_on)
         self.__calibrated_turn(direction)
         
         print("NOW ON CORRECT SIDE")
         previously_on = False
-        self.__wheels.forward()
         self.__travel_with_counter(turn_sensor, finish[1])
         self.__calibrated_turn(direction)
         
@@ -245,8 +246,7 @@ class LineFollow:
         if start_count > 3:
             count -= 1
             print("THIS IS A RACK BAY")
-        self.__wheels.forward()
-        self.__travel_with_counter(turn_sensor, count) # could add the lines above and below to this method
+        self.__travel_with_counter(turn_sensor, count)
         self.__calibrated_turn(direction)
         self.__wheels.forward()
         print("FINISHING UP")
@@ -259,181 +259,6 @@ class LineFollow:
         self.__wheels.stop()
         
     
-    def navigate_to(self, start, finish):
-        if start != 0:
-            self.__wheels.left()
-            self.__wheels.left()
-            self.__wheels.forward()
-            while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                self__stay_on_line()
-                sleep(0.05)
-            self.__wheels.stop()
-            same_side = False
-            if start[0] == 'l' and finish[0] == 'r':
-                direction = self.__wheels.left
-                turn_sensor = self.__left_sensor
-            elif start[0] == 'r' and finish[0] == 'l':
-                direction = self.__wheels.right
-                turn_sensor = self.__right_sensor
-            elif start[0] == 'l' and finish[0] == 'l':
-                same_side = True
-                if start[1] < finish[1]:
-                    direction = self.__wheels.right
-                else:
-                    direction = self.__wheels.left
-                    turn_sensor = self.__left_sensor
-            elif start[0] == 'r' and finish[0] == 'r':
-                same_side = True
-                if start[1] < finish[1]:
-                    direction = self.__wheels.left
-                    turn_sensor = self.__left_sensor
-                else:
-                    direction = self.__wheels.right
-            self.__calibrated_turn(direction)
-            
-            print(direction, turn_sensor)
-            
-            if same_side:
-                print("SAME SIDE")
-                count = abs(start[1] - end[1])
-                if start_count > 3:
-                    count -= 1
-                    print("THIS IS A RACK BAY")
-                self.__wheels.forward()
-                while count > 0:
-                    self.__stay_on_line()
-                    if turn_sensor.on_line():
-                        if not previously_on:
-                            count -= 1
-                            print("REDUCING SAME SIDE COUNT BY 1")
-                            previously_on = True
-                    else:
-                        previously_on = False
-                self.__calibrated_turn(direction)
-                self.__wheels.forward()
-                print("FINISHING UP")
-                if end < 3:
-                    while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                        self__stay_on_line()
-                        sleep(0.05)
-                else:
-                    pass
-                self.__wheels.stop()
-                
-            else:
-                print("DIFFERENT SIDE")
-                start_count = start[1]
-                end_count = end[1]
-                previously_on = False
-                if start_count > 3:
-                    print("THIS IS A RACK BAY")
-                    start_count -= 1
-                self.__wheels.forward()
-                while start_count > 0:
-                    self.__stay_on_line()
-                    if turn_sensor.on_line():
-                        if not previously_on:
-                            start_count -= 1
-                            print("REDUCING START COUNT BY 1")
-                            previously_on = True
-                    else:
-                        previously_on = False
-                self.__calibrated_turn(direction)
-                print("FINISHED START SIDE")
-                
-                mid_count = 2
-                previously_on = False
-                self.__wheels.forward()
-                while mid_count > 0:
-                    self.__stay_on_line()
-                    if self._on_track and self.__left_sensor.on_line() and self.__right_sensor.on_line():
-                        if not previously_on:
-                            mid_count -= 1
-                            print("REDUCING MID COUNT BY 1")
-                            previously_on = True
-                    else:
-                        previously_on = False
-                sleep(0.5)
-                while not turn_sensor.on_line():
-                    self.__stay_on_line()
-                self.__calibrated_turn(direction)
-                print("FINISHED MIDDLE")
-                
-                previously_on = False
-                self.__wheels.forward()
-                while end_count > 0:
-                    self.__stay_on_line()
-                    if turn_sensor.on_line():
-                        if not previously_on:
-                            print("REDUCING END COUNT BY 1")
-                            end_count -= 1
-                            previously_on = True
-                    else:
-                        previously_on = False
-                self.__calibrated_turn(direction)
-                print("FINISHED END")
-                
-                self.__wheels.forward()
-                print("FINISHING UP")
-                if end < 3:
-                    while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                        self__stay_on_line()
-                        sleep(0.05)
-                else:
-                    pass
-                self.__wheels.stop()
-                
-        else:
-            print("GOING FROM START")
-            if finish[0] == 'r':
-                self.__calibrated_turn(self.__wheels.right)
-                direction = self.__wheels.left
-                turn_sensor = self.__left_sensor
-            elif finish[0] == 'l':
-                self.__calibrated_turn(self.__wheels.left)
-                direction = self.__wheels.right
-                turn_sensor = self.__right_sensor
-            mid_count = 1
-            previously_on = False
-            self.__wheels.forward()
-            while mid_count > 0:
-                self.__stay_on_line()
-                if self._on_track and self.__left_sensor.on_line() and self.__right_sensor.on_line():
-                    if not previously_on:
-                        mid_count -= 1
-                        previously_on = True
-                else:
-                    previously_on = False
-            sleep(0.5)
-            while not turn_sensor.on_line():
-                self.__stay_on_line()
-            self.__calibrated_turn(direction)
-            
-            print("NOW ON CORRECT SIDE")
-            previously_on = False
-            self.__wheels.forward()
-            while end_count > 0:
-                self.__stay_on_line()
-                if turn_sensor.on_line():
-                    if not previously_on:
-                        end_count -= 1
-                        print("REDUCING COUNT BY 1")
-                        previously_on = True
-                else:
-                    previously_on = False
-            self.__calibrated_turn(direction)
-            
-            self.__wheels.forward()
-            print("FINISHING UP")
-            if end < 3:
-                while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                    self__stay_on_line()
-                    sleep(0.05)
-            else:
-                pass
-            self.__wheels.stop()
-            
-        print("NAVIGATION FINISHED")
             
                     
 
