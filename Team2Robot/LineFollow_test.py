@@ -11,11 +11,11 @@ class Motor:
     def stop(self):
         self.pwm.duty_u16(0)
         
-    def forward(self, speed=100):
+    def backward(self, speed=100):
         self.mDir.value(0)                     # forward = 0 reverse = 1 motor
         self.pwm.duty_u16(int(65535 * speed / 100))  # speed range 0-100 motor
-
-    def backward(self, speed=100):
+        
+    def forward(self, speed=100):
         self.mDir.value(1)
         self.pwm.duty_u16(int(65535 * speed / 100))
 
@@ -25,6 +25,8 @@ class Wheels:
         self.__left_wheel = Motor(4,5)
         self.__right_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.02
+        self.__TURN_SLEEP = 0.4
+        self.__TURN_AROUND_SLEEP = 1
         
     def forward(self):
         print("GOING FORWARD")
@@ -36,41 +38,34 @@ class Wheels:
         self.__left_wheel.backward()
         self.__right_wheel.backward()
     
-    def left(self, on_line, rack=False):
+# add a 180 sleep option  
+    def left(self, on_line):
         print("GOING LEFT")
         self.__left_wheel.backward()
         self.__right_wheel.forward()
-        if rack:
-            count = 2
-        else:
-            count = 1
-        previously_on = True
-        while count > 0:
-            if on_line():
-                if not previously:
-                    count -= 1
-                    previously = True
-            else:
-                previously_on = False
+        sleep(self.__TURN_SLEEP)
+        while not on_line():
+            continue
         self.__left_wheel.stop()
         self.__right_wheel.stop()
             
-    def right(self, on_line, rack=False):
+    def right(self, on_line):
         print("GOING RIGHT")
         self.__left_wheel.forward()
         self.__right_wheel.backward()
-        if rack:
-            count = 2
-        else:
-            count = 1
-        previously_on = True
-        while count > 0:
-            if on_line():
-                if not previously:
-                    count -= 1
-                    previously = True
-            else:
-                previously_on = False
+        sleep(self.__TURN_SLEEP)
+        while not on_line():
+            continue
+        self.__left_wheel.stop()
+        self.__right_wheel.stop()
+        
+    def turn_around(self, on_line):
+        print("TURNING AROUND")
+        self.__left_wheel.backward()
+        self.__right_wheel.forward()
+        sleep(self.__TURN_AROUND_SLEEP)
+        while not on_line():
+            continue
         self.__left_wheel.stop()
         self.__right_wheel.stop()
     
@@ -80,22 +75,18 @@ class Wheels:
         self.__right_wheel.stop()
         
     def correct_left(self, on_track):
-        print("CORRECTING LEFT")
-        self.__left_wheel.forward(80)
+        self.__right_wheel.forward(60)
         while not on_track():
-            sleep(0.05)
-        sleep(self.CORRECTION_TIME)
-        self.__left_wheel.forward()
-        print("CORRECTED")
+            continue
+        sleep(self.__CORRECTION_TIME)
+        self.__right_wheel.forward()
         
     def correct_right(self, on_track):
-        print("CORRECTING RIGHT")
-        self.__right_wheel.forward(80)
+        self.__left_wheel.forward(60)
         while not on_track():
-            sleep(0.05)
-        sleep(self.CORRECTION_TIME)
-        self.__right_wheel.forward()
-        print("CORRECTED")
+            continue
+        sleep(self.__CORRECTION_TIME)
+        self.__left_wheel.forward()
         
 
 class LineSensor:
@@ -110,21 +101,26 @@ class LineSensor:
 
 class LineFollow:
     def __init__(self):
-        self.__left_sensor = LineSensor(21)
+        self.__left_sensor = LineSensor(18)
         self.__centre_left_sensor = LineSensor(20)
         self.__centre_right_sensor = LineSensor(19)
-        self.__right_sensor = LineSensor(18)
+        self.__right_sensor = LineSensor(21)
         self.__wheels = Wheels()
         self.__TURN_CALIB = 0.5
         
     def _on_track(self):
-        return self.__centre_left_sensor.on_line() and self.__centre_right_sensor.on_line()   
+        return self.__centre_left_sensor.on_line() and self.__centre_right_sensor.on_line()
+    
+    
+    def __all_sensors_on(self):
+        return self.__centre_left_sensor.on_line() and self.__centre_right_sensor.on_line() and self.__left_sensor.on_line() and self.__right_sensor.on_line()
         
-    def __calibrated_turn(self, direction):
+    def __calibrated_turn(self, direction, rack=False):
         self.__wheels.forward()
         sleep(self.__TURN_CALIB)
         self.__wheels.stop()
         direction(self._on_track)
+
         
     def __stay_on_line(self):
         if not self.__centre_left_sensor.on_line():
@@ -143,17 +139,31 @@ class LineFollow:
                     previously_on = True
             else:
                 previously_on = False
-    
-    def go_to_start(self, start):
-        self.__wheels.left()
-        self.__wheels.left()
-        # need to edit 180 above
+                
+    def __exit_location(self, rack):
+        print("EXITING LOCATION")
+        if rack:
+            self.__wheels.turn(self._on_track)
+        else:
+            self.__calibrated_turn(self.__wheels.turn)
         self.__wheels.forward()
-        while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-            self__stay_on_line()
-            sleep(0.05)
+        while not(self._on_track() and self.__left_sensor.on_line() and self.__right_sensor.on_line()):
+            self.__stay_on_line()
         self.__wheels.stop()
-        same_side = False
+        
+    def __enter_location(self, rack):
+        print("ENTERING LOCATION")
+        self.__wheels.forward()
+        if rack:
+            sleep(1.6)
+        else:
+            while not(self._on_track() and self.__left_sensor.on_line() and self.__right_sensor.on_line()):
+                self.__stay_on_line()
+        self.__wheels.stop()
+
+    
+    def go_to_start(self, start, rack=False):
+        self.__exit_location(rack)
         if start[0] == 'l':
             direction = self.__wheels.left
             turn_sensor = self.__left_sensor
@@ -163,17 +173,15 @@ class LineFollow:
         print(direction, turn_sensor)
         self.__calibrated_turn(direction)
         
-        print("DIFFERENT SIDE")
         start_count = start[1]
         if start_count > 3:
-            print("THIS IS A RACK BAY")
             start_count -= 1
-        self.__travel_with_counter(start_count, turn_sensor)
+        self.__travel_with_counter(turn_sensor.on_line, start_count)
         self.__calibrated_turn(direction)
         print("FINISHED START SIDE")
         
         mid_count = 2
-        self.__travel_with_counter(start_count, lambda x: self._on_track() and self.__left_sensor.on_line() and self.__right_sensor.on_line())
+        self.__travel_with_counter(self.__all_sensors_on, mid_count)
         self.__wheels.stop()
         print("RETURNED TO START")
         
@@ -181,54 +189,37 @@ class LineFollow:
     def go_from_start(self, finish, orientation='f'):
         if orientation == 'f':
             if finish[0] == 'l':
-                self.__wheels.left()
+                self.__wheels.left(self._on_track)
             if finish[0] == 'r':
-                self.__wheels.right()
+                self.__wheels.right(self._on_track)
         print("GOING FROM START")
         if finish[0] == 'r':
-            self.__calibrated_turn(self.__wheels.right)
             direction = self.__wheels.left
             turn_sensor = self.__left_sensor
         elif finish[0] == 'l':
-            self.__calibrated_turn(self.__wheels.left)
             direction = self.__wheels.right
             turn_sensor = self.__right_sensor
         mid_count = 2
-        previously_on = False if orientation=='f' else True
-        self.__travel_with_counter(turn_sensor, mid_count, previously_on)
+        self.__travel_with_counter(turn_sensor.on_line, mid_count, previously_on)
         self.__calibrated_turn(direction)
         
         print("NOW ON CORRECT SIDE")
         previously_on = False
-        self.__travel_with_counter(turn_sensor, finish[1])
-        self.__calibrated_turn(direction)
+        finish_counter = finish[1]
+        self.__travel_with_counter(turn_sensor.on_line, finish_counter)
+        if finish_counter > 2:
+            self.__calibrated_turn(direction, rack=True)
         
-        self.__wheels.forward()
-        print("FINISHING UP")
-        if end < 3:
-            while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                self__stay_on_line()
-                sleep(0.05)
-        else:
-            pass # implement final travel to rack
-        self.__wheels.stop()
-        
-    print("NAVIGATION FINISHED")
+        rack = True if finish[1] >= 3 else False
+        self.__enter_location(rack)
     
     
-    def travel_same_side(self, start, finish):
-        self.__wheels.left()
-        self.__wheels.left()
-        # need to edit 180 above
-        self.__wheels.forward()
-        while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-            self__stay_on_line()
-            sleep(0.05)
-        self.__wheels.stop()
-        same_side = False
+    def travel_same_side(self, start, finish, rack=False):
+        self.__exit_location(rack)
         if start[0] == 'l':
             if start[1] < finish[1]:
                 direction = self.__wheels.right
+                turn_sensor = self.__right_sensor
             else:
                 direction = self.__wheels.left
                 turn_sensor = self.__left_sensor
@@ -237,40 +228,25 @@ class LineFollow:
                 direction = self.__wheels.left
                 turn_sensor = self.__left_sensor
             else:
-                direction = self.__wheels.right   
-        print(direction, turn_sensor)
+                direction = self.__wheels.right
+                turn_sensor = self.__right_sensor  
         self.__calibrated_turn(direction)
         
         print("SAME SIDE")
         count = abs(start[1] - end[1])
-        if start_count > 3:
-            count -= 1
-            print("THIS IS A RACK BAY")
-        self.__travel_with_counter(turn_sensor, count)
+        self.__travel_with_counter(turn_sensor.on_line, count)
+        # add calibrated turn for rack - issues with rack to rack movement - perhaps split this method into categories
         self.__calibrated_turn(direction)
-        self.__wheels.forward()
-        print("FINISHING UP")
-        if end < 3:
-            while not(self._on_track and self.__left_sensor._on_track and self.__right_sensor._on_track):
-                self__stay_on_line()
-                sleep(0.05)
-        else:
-            pass # perhaps implement as new method (finish route)
-        self.__wheels.stop()
         
-    
-            
-                    
-
-
-
-
+        rack = True if finish[1] >= 3 else False
+        self.__enter_location(rack)
+        
 
 
 if __name__ == "__main__":
-    a = Wheels()
-    a.backward()
-    sleep(0.55)
-    a.stop()
-    a.right()
-    
+    a = LineFollow()
+    sleep(1)
+    a.go_from_start(('l',3))
+    print("COMING BACK")
+    a.go_to_start(('l',3))
+    #a.__wheels.stop()
