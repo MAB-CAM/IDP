@@ -21,7 +21,7 @@ class LineFollow:
         # this method checks if all the sensors are on a line (usually for a turn leaving a box/rack location or stopping before a box)
         return self.__centre_left_sensor.on_line() and self.__centre_right_sensor.on_line() and self.__left_sensor.on_line() and self.__right_sensor.on_line()
         
-    def __calibrated_turn(self, direction, rack=False):
+    def __calibrated_turn(self, direction):
         # utilises wheels turning alongside moving forward a bit first to ensure the sensors end up on the line
         self.__wheels.forward()
         sleep(self.__TURN_CALIB)
@@ -73,14 +73,15 @@ class LineFollow:
         print("ENTERING LOCATION")
         self.__wheels.forward()
         if rack:
-            sleep(1.6)
+            sleep(1.6) # must stay on line
         else:
-            while not(self._on_track() and self.__left_sensor.on_line() and self.__right_sensor.on_line()):
+            while not(self.__all_sensors_on()):
                 self.__stay_on_line()
         self.__wheels.stop()
 
     
-    def go_to_start(self, start, rack=False):
+    def go_to_start(self, start):
+        rack = True if start[1] >= 3 else False
         self.__exit_location(rack)
         if start[0] == 'l':
             direction = self.__wheels.left
@@ -118,21 +119,20 @@ class LineFollow:
             direction = self.__wheels.right
             turn_sensor = self.__right_sensor
         mid_count = 2
-        self.__travel_with_counter(turn_sensor.on_line, mid_count, previously_on)
+        self.__travel_with_counter(turn_sensor.on_line, mid_count)
         self.__calibrated_turn(direction)
         
         print("NOW ON CORRECT SIDE")
-        previously_on = False
         finish_counter = finish[1]
         self.__travel_with_counter(turn_sensor.on_line, finish_counter)
-        if finish_counter > 2:
-            self.__calibrated_turn(direction, rack=True)
+        self.__calibrated_turn(direction)
         
         rack = True if finish[1] >= 3 else False
         self.__enter_location(rack)
     
     
-    def travel_same_side(self, start, finish, rack=False):
+    def travel_same_side(self, start, finish):
+        rack = True if start[1] >= 3 else False
         self.__exit_location(rack)
         if start[0] == 'l':
             if start[1] < finish[1]:
@@ -151,9 +151,10 @@ class LineFollow:
         self.__calibrated_turn(direction)
         
         print("SAME SIDE")
-        count = abs(start[1] - end[1])
+        count = abs(start[1] - finish[1])
         self.__travel_with_counter(turn_sensor.on_line, count)
         # add calibrated turn for rack - issues with rack to rack movement - perhaps split this method into categories
+        # could alternate and then turn around odd/even
         self.__calibrated_turn(direction)
         
         rack = True if finish[1] >= 3 else False

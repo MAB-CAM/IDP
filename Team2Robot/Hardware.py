@@ -42,8 +42,7 @@ class Wheels:
         print("GOING BACKWARD")
         self.__left_wheel.backward()
         self.__right_wheel.backward()
-    
- 
+
     def left(self, on_line):
         # turning axis is midpoint between wheels
         print("GOING LEFT")
@@ -58,7 +57,7 @@ class Wheels:
         self.__left_wheel.stop()
         self.__right_wheel.stop()
             
-    def right(self, on_line):
+    def right(self, on_track):
         # turning axis is midpoint between wheels
         print("GOING RIGHT")
         self.__left_wheel.forward()
@@ -66,13 +65,13 @@ class Wheels:
         sleep(self.__TURN_SLEEP)
         #  above we sleep for the majority of the turn to avoid early detection
         # (e.g. a different close by line)
-        while not on_line():
+        while not on_track():
             continue
         # only stop turning when we're back on the line
         self.__left_wheel.stop()
         self.__right_wheel.stop()
         
-    def turn_around(self, on_line):
+    def turn_around(self, on_track):
         # this method is used for 180 degree turns
         print("TURNING AROUND")
         self.__left_wheel.backward()
@@ -80,7 +79,7 @@ class Wheels:
         sleep(self.__TURN_AROUND_SLEEP)
         # above we sleep for majority of the turn to avoid early detection
         # (e.g. a different close by line)
-        while not on_line():
+        while not on_track():
             continue
         # only stop turning when we're back on the line
         self.__left_wheel.stop()
