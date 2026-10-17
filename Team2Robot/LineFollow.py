@@ -1,4 +1,5 @@
 from Hardware import *
+from time import perf_counter
 
 class LineFollow:
     '''
@@ -73,10 +74,12 @@ class LineFollow:
         print("ENTERING LOCATION")
         self.__wheels.forward()
         if rack:
-            sleep(1.6) # must stay on line
+            start_time = perf_counter()
+            condition = lambda x: perf_counter-start_time < 1.6
         else:
-            while not(self.__all_sensors_on()):
-                self.__stay_on_line()
+            condition = lambda x: not self.__all_sensors_on()
+        while condition:
+            self.__stay_on_line()
         self.__wheels.stop()
 
     
