@@ -196,12 +196,13 @@ class LineFollow:
         self.__wheels.forward()
         if rack:
             start_time = ticks_ms()
-            condition = lambda x: ticks_diff(ticks_ms(), start_time) < 1600
+            condition = lambda: ticks_diff(ticks_ms(), start_time) < 1600
         else:
-            condition = lambda x: not self.__all_sensors_on()
-        while condition:
+            condition = lambda: not self.__all_sensors_on()
+        while condition():
             self.__stay_on_line()
         self.__wheels.stop()
+        print("LOCATION ENTERED")
 
     
     def go_to_start(self, start):
@@ -253,6 +254,8 @@ class LineFollow:
         
         rack = True if finish[1] >= 3 else False
         self.__enter_location(rack)
+        
+        
     
     
     def travel_same_side(self, start, finish):
@@ -290,7 +293,7 @@ class LineFollow:
 if __name__ == "__main__":
     a = LineFollow()
     sleep(1)
-    a.go_from_start(('l',2))
+    a.go_from_start(('r',2))
     print("COMING BACK")
-    a.travel_same_side(('l',2), ('l', 3))
+    a.travel_same_side(('r',2), ('r', 3))
     #a.__wheels.stop()
