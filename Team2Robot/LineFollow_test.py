@@ -71,7 +71,7 @@ class Wheels:
         self.__left_wheel.stop()
         self.__right_wheel.stop()
         
-    def turn_around(self, on_track):
+    def turn(self, on_track):
         # this method is used for 180 degree turns
         print("TURNING AROUND")
         self.__left_wheel.backward()
@@ -294,6 +294,7 @@ if __name__ == "__main__":
     a = LineFollow()
     sleep(1)
     a.go_from_start(('r',2))
-    print("COMING BACK")
+    print("GOING TO RACK")
     a.travel_same_side(('r',2), ('r', 3))
-    #a.__wheels.stop()
+    print("GOING BACK")
+    a.go_to_start(('r',3))

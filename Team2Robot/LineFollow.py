@@ -1,5 +1,4 @@
 from Hardware import *
-from time import perf_counter
 
 class LineFollow:
     '''
@@ -74,13 +73,14 @@ class LineFollow:
         print("ENTERING LOCATION")
         self.__wheels.forward()
         if rack:
-            start_time = perf_counter()
-            condition = lambda x: perf_counter-start_time < 1.6
+            start_time = ticks_ms()
+            condition = lambda: ticks_diff(ticks_ms(), start_time) < 1600
         else:
-            condition = lambda x: not self.__all_sensors_on()
-        while condition:
+            condition = lambda: not self.__all_sensors_on()
+        while condition():
             self.__stay_on_line()
         self.__wheels.stop()
+        print("LOCATION ENTERED")
 
     
     def go_to_start(self, start):
@@ -132,6 +132,8 @@ class LineFollow:
         
         rack = True if finish[1] >= 3 else False
         self.__enter_location(rack)
+        
+        
     
     
     def travel_same_side(self, start, finish):

@@ -1,5 +1,5 @@
 from machine import Pin, PWM
-from utime import sleep
+from utime import sleep, ticks_ms, ticks_diff
 
 class Motor:
     def __init__(self, dir_pin, PWMPin):
@@ -71,7 +71,7 @@ class Wheels:
         self.__left_wheel.stop()
         self.__right_wheel.stop()
         
-    def turn_around(self, on_track):
+    def turn(self, on_track):
         # this method is used for 180 degree turns
         print("TURNING AROUND")
         self.__left_wheel.backward()
