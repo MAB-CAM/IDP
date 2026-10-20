@@ -119,3 +119,44 @@ class LineSensor:
 
     def on_line(self):
         return self.__sensor.value()
+
+
+
+class Servo:
+    def __init__(self, pin_num):
+        self.__pwm = PWM(Pin(pin_num))
+        self.__pwm.freq(50)              # 20 ms period
+        # duty_u16 = (pulse / 20 ms) * 65535: 0.5 ms -> 1638, 2.5 ms -> 8192
+        self.__MIN_DUTY = 1638           # 0°
+        self.__MAX_DUTY = 8192           # 270°
+        self.__RANGE = 270
+        self.__CENTRE = 135
+
+    def set_angle(self, angle):
+        angle = max(0, min(self.__RANGE, angle))
+        duty = int(self.__MIN_DUTY + (angle / self.__RANGE) * (self.__MAX_DUTY - self.__MIN_DUTY))
+        self.__pwm.duty_u16(duty)
+
+    def centre(self):
+        self.set_angle(self.__CENTRE)
+
+    def release(self):
+        self.__pwm.duty_u16(0)           # no pulses -> servo goes limp
+
+
+
+
+class HallSensor:
+    def __init__(self, sensor):
+        self.__sensor = ADC(sensor)
+
+    def polarity(self):
+        pass
+
+
+class TOF:
+    def __init__(self, sensor):
+        self.__sensor = sensor
+
+    def distance(self):
+        pass

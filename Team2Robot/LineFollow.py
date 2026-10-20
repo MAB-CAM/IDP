@@ -69,12 +69,16 @@ class LineFollow:
             # keep following line until we reach end of the location to turn onto a main branch
         self.__wheels.stop()
         
-    def __enter_location(self, rack):
+    def __enter_location(self, rack, upper_flag):
         print("ENTERING LOCATION")
         self.__wheels.forward()
+        if upper_flag:
+            rack_time = 1200
+        else:
+            rack_time = 1600
         if rack:
             start_time = ticks_ms()
-            condition = lambda: ticks_diff(ticks_ms(), start_time) < 1600
+            condition = lambda: ticks_diff(ticks_ms(), start_time) < rack_time
         else:
             condition = lambda: not self.__all_sensors_on()
         while condition():
@@ -86,7 +90,7 @@ class LineFollow:
     def go_to_start(self, start):
         upper_flag = start[0] == "ul" or start[0] == "ur"
         rack = True if start[1] >= 3 or upper_flag else False
-        self.__exit_location(rack)
+        self.__exit_location(rack, upper_flag)
         if start[0] == 'l' or start[0] == "ur":
             direction = self.__wheels.left
             turn_sensor = self.__left_sensor
@@ -96,13 +100,15 @@ class LineFollow:
         print(direction, turn_sensor)
         self.__calibrated_turn(direction)
         
-        if rack:
+        if start[1]>3 and not upper_flag:
             start_count -= 1
+        if start[1] == 1 and upper_flag:
+            start_count += 1
         self.__travel_with_counter(turn_sensor.on_line, start_count)
-        self.__calibrated_turn(direction)
         print("FINISHED START SIDE")
 
         if not upper_flag:
+            self.__calibrated_turn(direction)
             mid_count = 2
             self.__travel_with_counter(self.__all_sensors_on, mid_count)
             self.__wheels.stop()
@@ -146,13 +152,13 @@ class LineFollow:
         self.__calibrated_turn(direction)
         
         rack = True if finish[1] >= 3 or upper_flag else False
-        self.__enter_location(rack)
+        self.__enter_location(rack, upper_flag)
         
         
     def travel_same_side(self, start, finish):
         upper_flag = start[0] == "ul" or start[0] == "ur"
         rack = True if start[1] >= 3 or upper_flag else False
-        self.__exit_location(rack or upper_flag)
+        self.__exit_location(rack)
         if start[0] == 'l' or start[0] == "ur":
             if start[1] < finish[1]:
                 direction = self.__wheels.right
@@ -170,17 +176,18 @@ class LineFollow:
         self.__calibrated_turn(direction)
         
         print("SAME SIDE")
-        count = abs(start[1] - finish[1])
-        if (rack or upper_flag) and count == 1:
+        count = start[1] - finish[1]
+        if (rack or upper_flag) and count >= 1:
             self.__motors.backward()
-            sleep(0.3) # instead could alternate and then turn around odd/even
-        self.__travel_with_counter(turn_sensor.on_line, count)
+            sleep(0.3) # instead could alternate and then turn around odd/even, or could turn straight away for single move
+        self.__travel_with_counter(turn_sensor.on_line, abs(count))
         self.__calibrated_turn(direction)
         
         rack = True if finish[1] >= 3 or upper_flag else False
-        self.__enter_location(rack)
+        self.__enter_location(rack, upper_flag)
 
 
     def switch_upper_rack(self, start, finish):
         pass
-        # extra implementation from switching between left and right on elevated racks
+    
+        
