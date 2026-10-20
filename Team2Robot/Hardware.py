@@ -1,5 +1,5 @@
-from machine import Pin, PWM
-from utime import sleep, ticks_ms, ticks_diff
+from machine import Pin, PWM, ADC
+from utime import sleep
 
 class Motor:
     def __init__(self, dir_pin, PWMPin):
@@ -154,9 +154,12 @@ class HallSensor:
         pass
 
 
-class TOF:
+class ToF:
     def __init__(self, sensor):
         self.__sensor = sensor
 
     def distance(self):
+        pass
+
+    def object_detected(self):
         pass

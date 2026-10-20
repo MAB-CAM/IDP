@@ -1,6 +1,4 @@
 from Hardware import *
-from machine import Pin, PWM, ADC
-from utime import sleep
 
 class Grabber:
     def __init__(self):

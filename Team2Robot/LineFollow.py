@@ -1,4 +1,5 @@
 from Hardware import *
+from utime import ticks_ms, ticks_diff
 
 class LineFollow:
     '''
