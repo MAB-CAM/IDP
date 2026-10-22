@@ -15,7 +15,7 @@ class Navigation:
         self.__boxes = [('l', n) for n in range(3)] + [('r', n) for n in range(3)]
     
     def rack_search(self, racks, last_location, orientation):
-        for rack in racks:
+        for rack in racks[:]:
             if last_location == 0:
                 self.__line_follow.go_from_start(rack, orientation)
             else:
@@ -40,6 +40,23 @@ class Navigation:
             self.__line_follow.go_to_start(last_location)
             last_location = 0
             racks = self.__upper_left_racks
-        self.rack_search(racks, last_location, 'r')
+        last_location = self.rack_search(racks, last_location, 'r')
+
+        self.__line_follow.travel_same_side(last_location, ('l', 2))
+        self.__grabber.pick_up()
+        if self.__hall_sensor.polarity():
+            last_location = ('l',2)
+            racks = self.__left_racks
+        else:
+            self.__line_follow.go_to_start(last_location)
+            last_location = 0
+            racks = self.__upper_left_racks
+        last_location = self.rack_search(racks, last_location, 'r')
+
+        self.__line_follow.go_to_start(last_location)
+
+
+
+
 
 

@@ -70,7 +70,7 @@ class LineFollow:
             # keep following line until we reach end of the location to turn onto a main branch
         self.__wheels.stop()
         
-    def __enter_location(self, rack, upper_flag):
+    def __enter_location(self, rack, upper_flag=False):
         print("ENTERING LOCATION")
         self.__wheels.forward()
         if upper_flag:

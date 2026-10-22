@@ -154,6 +154,16 @@ class HallSensor:
         pass
 
 
+class Infrared:
+    '''
+    '''
+    def __init__(self, dig_pin):
+        self.__sensor = Pin(dig_pin, Pin.IN)
+
+    def reading(self):
+        return self.__sensor.value()
+
+
 class ToF:
     def __init__(self, sensor):
         self.__sensor = sensor
@@ -163,3 +173,8 @@ class ToF:
 
     def object_detected(self):
         pass
+    
+if __name__ == "__main__":
+    sensor_ = Infrared(10) # plug into 14
+    while True:
+        print(sensor_.reading())
