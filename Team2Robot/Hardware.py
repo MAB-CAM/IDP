@@ -1,4 +1,5 @@
-from machine import Pin, PWM, ADC
+from machine import Pin, PWM, ADC, I2C
+from libs.VL53L0X.VL53L0X import VL53L0X
 from utime import sleep
 
 class Motor:
@@ -155,8 +156,6 @@ class HallSensor:
 
 
 class Infrared:
-    '''
-    '''
     def __init__(self, dig_pin):
         self.__sensor = Pin(dig_pin, Pin.IN)
 
@@ -165,16 +164,22 @@ class Infrared:
 
 
 class ToF:
-    def __init__(self, sensor):
-        self.__sensor = sensor
+    def __init__(self, sda, scl):
+        sda_pin = Pin(sda)
+        scl_pin = Pin(scl)
+        i2c_bus = I2C(id=0, sda=sda_pin, scl=scl_pin) # I2C0 on GP8 & GP9
+        
+        # Setup vl53l0 object
+        self.__vl53l0 = VL53L0X(i2c_bus)
+        self.__vl53l0.set_Vcsel_pulse_period(self.__vl53l0.vcsel_period_type[0], 18)
+        self.__vl53l0.set_Vcsel_pulse_period(self.__vl53l0.vcsel_period_type[1], 14)
 
-    def distance(self):
-        pass
-
-    def object_detected(self):
-        pass
+    def start_sensor(self):
+        self.__vl53l0.start()
     
-if __name__ == "__main__":
-    sensor_ = Infrared(10) # plug into 14
-    while True:
-        print(sensor_.reading())
+    def distance(self):
+        return self.__vl53l0.read()
+
+    def stop_sensor(self):
+        self.__vl53l0.stop()
+    
