@@ -28,8 +28,8 @@ class Wheels:
     turning, and correcting path for line following.
     '''
     def __init__(self):
-        self.__left_wheel = Motor(4,5)
-        self.__right_wheel = Motor(7,6)
+        self.__right_wheel = Motor(4,5)
+        self.__left_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.02 
         self.__TURN_SLEEP = 0.4 
         self.__TURN_AROUND_SLEEP = 1
@@ -145,14 +145,42 @@ class Servo:
         self.__pwm.duty_u16(0)           # no pulses -> servo goes limp
 
 
-
+class LED:
+    def __init__(self, led_pin):
+        self.__led = Pin(led_pin, Pin.OUT)
+        
+    def on(self):
+        self.__led.value(1)
+        
+    def off(self):
+        self.__led.value(0)
+        
+    def flash(self):
+        self.on()
+        sleep(0.5)
+        self.off()
+        
 
 class HallSensor:
     def __init__(self, sensor):
         self.__sensor = ADC(sensor)
+        self.__NORTH = 45000
+        self.__SOUTH = 30000
 
+    def read(self):
+        return self.__sensor.read_u16()
+    
     def polarity(self):
-        pass
+        reading = 0
+        for i in range(100):
+            reading += self.__sensor.read_u16()
+        reading /= 100
+        if reading > self.__NORTH:
+            return 'N'
+        elif reading < self.__SOUTH:
+            return 'S'
+        else:
+            return None
 
 
 class Infrared:
@@ -167,7 +195,7 @@ class ToF:
     def __init__(self, sda, scl):
         sda_pin = Pin(sda)
         scl_pin = Pin(scl)
-        i2c_bus = I2C(id=0, sda=sda_pin, scl=scl_pin) # I2C0 on GP8 & GP9
+        i2c_bus = I2C(id=1, sda=sda_pin, scl=scl_pin) # I2C0 on GP8 & GP9
         
         # Setup vl53l0 object
         self.__vl53l0 = VL53L0X(i2c_bus)
@@ -182,4 +210,13 @@ class ToF:
 
     def stop_sensor(self):
         self.__vl53l0.stop()
+
+if __name__ == "__main__":
+    T = ToF(2,3)
+    T.start_sensor()
+    for i in range(100):
+        sleep(0.5)
+        print(T.distance())
+    T.stop_sensor()
+
     

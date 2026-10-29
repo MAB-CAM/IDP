@@ -49,11 +49,11 @@ def test_positions():
        time.sleep(2)
  
        print("Move to 135° (centre)")
-       servo1.set_angle(135)
+       servo1.set_angle(20)
        time.sleep(2)
  
-       print("Move to 270°")
-       servo1.set_angle(270)
+       print("Move to 90°")
+       servo1.set_angle(30)
        time.sleep(2)
  
 # Run test

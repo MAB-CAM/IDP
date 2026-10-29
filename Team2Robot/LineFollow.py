@@ -192,3 +192,12 @@ class LineFollow:
         pass
     
         
+if __name__ == "__main__":
+    a = LineFollow()
+    #a.__wheels.stop()
+    sleep(1)
+    a.go_from_start(('r',2))
+    print("GOING TO RACK")
+    a.travel_same_side(('r',2), ('r', 3))
+    print("GOING BACK")
+    a.go_to_start(('r',3))
