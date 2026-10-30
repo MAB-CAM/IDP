@@ -1,4 +1,4 @@
-from machine import Pin, PWM, ADC, I2C
+from machine import Pin, PWM, ADC, I2C, SoftI2C
 from libs.VL53L0X.VL53L0X import VL53L0X
 from utime import sleep
 
@@ -28,8 +28,8 @@ class Wheels:
     turning, and correcting path for line following.
     '''
     def __init__(self):
-        self.__right_wheel = Motor(4,5)
-        self.__left_wheel = Motor(7,6)
+        self.__left_wheel = Motor(4,5)
+        self.__right_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.02 
         self.__TURN_SLEEP = 0.4 
         self.__TURN_AROUND_SLEEP = 1
@@ -44,31 +44,37 @@ class Wheels:
         self.__left_wheel.backward()
         self.__right_wheel.backward()
 
-    def left(self, on_line):
+    def left(self, on_line, timed=False, time=0):
         # turning axis is midpoint between wheels
         print("GOING LEFT")
         self.__left_wheel.backward()
         self.__right_wheel.forward()
-        sleep(self.__TURN_SLEEP) 
-        #  above we sleep for the majority of the turn to avoid early detection
-        # (e.g. a different close by line)
-        while not on_line():
-            continue
-        # only stop turnign when we're back on the line
+        if timed:
+            sleep(time)
+        else:
+            sleep(self.__TURN_SLEEP) 
+            #  above we sleep for the majority of the turn to avoid early detection
+            # (e.g. a different close by line)
+            while not on_line():
+                continue
+            # only stop turning when we're back on the line
         self.__left_wheel.stop()
         self.__right_wheel.stop()
             
-    def right(self, on_track):
+    def right(self, on_track, timed=False, time=0):
         # turning axis is midpoint between wheels
         print("GOING RIGHT")
         self.__left_wheel.forward()
         self.__right_wheel.backward()
-        sleep(self.__TURN_SLEEP)
-        #  above we sleep for the majority of the turn to avoid early detection
-        # (e.g. a different close by line)
-        while not on_track():
-            continue
-        # only stop turning when we're back on the line
+        if timed:
+            sleep(time)
+        else:
+            sleep(self.__TURN_SLEEP)
+            #  above we sleep for the majority of the turn to avoid early detection
+            # (e.g. a different close by line)
+            while not on_track():
+                continue
+            # only stop turning when we're back on the line
         self.__left_wheel.stop()
         self.__right_wheel.stop()
         
@@ -195,7 +201,7 @@ class ToF:
     def __init__(self, sda, scl):
         sda_pin = Pin(sda)
         scl_pin = Pin(scl)
-        i2c_bus = I2C(id=1, sda=sda_pin, scl=scl_pin) # I2C0 on GP8 & GP9
+        i2c_bus = SoftI2C(sda=sda_pin, scl=scl_pin) # I2C0 on GP8 & GP9
         
         # Setup vl53l0 object
         self.__vl53l0 = VL53L0X(i2c_bus)
@@ -210,13 +216,9 @@ class ToF:
 
     def stop_sensor(self):
         self.__vl53l0.stop()
-
-if __name__ == "__main__":
-    T = ToF(2,3)
-    T.start_sensor()
-    for i in range(100):
-        sleep(0.5)
-        print(T.distance())
-    T.stop_sensor()
-
     
+
+
+
+
+

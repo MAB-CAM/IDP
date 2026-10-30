@@ -7,12 +7,13 @@ class LineFollow:
     navigating. This includes partial navigation between the start, boxes, and racks.
     '''
     def __init__(self):
-        self.__left_sensor = LineSensor(18)
-        self.__centre_left_sensor = LineSensor(20)
-        self.__centre_right_sensor = LineSensor(19)
-        self.__right_sensor = LineSensor(21)
+        self.__left_sensor = LineSensor(21)
+        self.__centre_left_sensor = LineSensor(19)
+        self.__centre_right_sensor = LineSensor(20)
+        self.__right_sensor = LineSensor(18)
         self.__wheels = Wheels()
-        self.__TURN_CALIB = 0.5
+        self.__TURN_CALIB = 0.65
+        self.__CORNER_TURN_CALIB = 0.5
         
     def _on_track(self):
         # this method is used to check if the robot is still on the line via the front two sensors
@@ -22,6 +23,13 @@ class LineFollow:
         # this method checks if all the sensors are on a line (usually for a turn leaving a box/rack location or stopping before a box)
         return self.__centre_left_sensor.on_line() and self.__centre_right_sensor.on_line() and self.__left_sensor.on_line() and self.__right_sensor.on_line()
         
+    def __corner_turn(self, direction):
+        self.__wheels.forward()
+        sleep(self.__CORNER_TURN_CALIB)
+        self.__wheels.stop()
+        direction(self._on_track)
+    
+    
     def __calibrated_turn(self, direction):
         # utilises wheels turning alongside moving forward a bit first to ensure the sensors end up on the line
         self.__wheels.forward()
@@ -58,6 +66,8 @@ class LineFollow:
         # this method is used to leave a line (box or rack) and go onto a main branch of the course
         print("EXITING LOCATION")
         if rack:
+            self.__wheels.backward()
+            sleep(0.5)
             self.__wheels.turn(self._on_track)
             # if on a rack we just do a 180
         else:
@@ -86,6 +96,25 @@ class LineFollow:
             self.__stay_on_line()
         self.__wheels.stop()
         print("LOCATION ENTERED")
+        
+    def push_into_rack(open_grabber, close_grabber):
+        self.__wheels.forward()
+        sleep(0.2)
+        self.__wheels.stop()
+        sleep(0.5)
+        open_grabber()
+        sleep(0.5)
+        self.__wheels.backward()
+        sleep(0.3)
+        self.__wheels.stop()
+        sleep(0.5)
+        close_grabber()
+        sleep(0.5)
+        self.__wheels.forward()
+        sleep(0.3)
+        self.__wheels.backward()
+        sleep(0.3)
+        self.__wheels.stop()
 
     
     def go_to_start(self, start):
@@ -120,9 +149,9 @@ class LineFollow:
         upper_flag = False
         if orientation == 'f':
             if finish[0] == 'l':
-                self.__wheels.left(self._on_track)
+                self.__wheels.left(self._on_track, timed = True, time = 1)
             if finish[0] == 'r':
-                self.__wheels.right(self._on_track)
+                self.__wheels.right(self._on_track, timed = True, time = 1)
         if orientation == 'b':
             if finish[0] == 'l':
                 self.__wheels.right(self._on_track)
@@ -145,7 +174,7 @@ class LineFollow:
         if not upper_flag:
             mid_count = 2
             self.__travel_with_counter(turn_sensor.on_line, mid_count)
-            self.__calibrated_turn(direction)
+            self.__corner_turn(direction)
         
         print("NOW ON CORRECT SIDE")
         finish_counter = finish[1]
@@ -191,13 +220,4 @@ class LineFollow:
     def switch_upper_rack(self, start, finish):
         pass
     
-        
-if __name__ == "__main__":
-    a = LineFollow()
-    #a.__wheels.stop()
-    sleep(1)
-    a.go_from_start(('r',2))
-    print("GOING TO RACK")
-    a.travel_same_side(('r',2), ('r', 3))
-    print("GOING BACK")
-    a.go_to_start(('r',3))
+

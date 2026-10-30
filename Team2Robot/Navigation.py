@@ -8,8 +8,8 @@ class Navigation:
     def __init__(self):
         self.__line_follow = LineFollow()
         self.__grabber = Grabber()
-        self.__ToF = ToF(2,3)
-        self.__hall_sensor = HallSensor(28)
+        #self.__ToF = ToF(2,3)
+        #self.__hall_sensor = HallSensor(28)
         self.__left_racks = [('l', n) for n in range(3,9)]
         self.__right_racks = [('r', n) for n in range(3,9)]
         self.__upper_left_racks = [('ul', n) for n in range(1,7)]
@@ -18,6 +18,8 @@ class Navigation:
         self.__red = LED(10)
         self.__green = LED(11)
         self.__yellow = LED(12)
+        
+        #self.__ToF.start_sensor()
     
     def rack_search(self, racks, last_location, orientation):
         for rack in racks[:]:
@@ -62,13 +64,20 @@ class Navigation:
 
 
     def grabber_test(self):
-        self.__line_follow.go_from_start(('l', 1))
+
+        #self.__grabber.ready()
+        self.__line_follow.go_from_start(('r', 1))
         #self.__grabber.pick_up()
         sleep(2)
-        self.__line_follow.travel_same_side(('l',1), ('l',3))
-        #self.__grabber.drop()
-        sleep(2)
-        self.__line_follow.go_to_start(('l',3))
+        self.__line_follow.travel_same_side(('r',1), ('r',3))
+        #sleep(2)
+        #self.__line_follow.push_into_rack(self.__grabber.drop, self.__grabber.close)
+        #sleep(1)
+        #self.__grabber.ready()
+        #sleep(2)
+        #self.__line_follow.go_to_start(('r',3))
+
+
 
 
 

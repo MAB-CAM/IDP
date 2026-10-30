@@ -284,6 +284,8 @@ class LineFollow:
         # this method is used to leave a line (box or rack) and go onto a main branch of the course
         print("EXITING LOCATION")
         if rack:
+            self.__wheels.backward()
+            sleep(0.5)
             self.__wheels.turn(self._on_track)
             # if on a rack we just do a 180
         else:
