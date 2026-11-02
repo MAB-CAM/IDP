@@ -31,7 +31,7 @@ class Wheels:
         self.__left_wheel = Motor(4,5)
         self.__right_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.02 
-        self.__TURN_SLEEP = 0.4 
+        self.__TURN_SLEEP = 0.6 
         self.__TURN_AROUND_SLEEP = 1
         
     def forward(self):
@@ -100,6 +100,7 @@ class Wheels:
     def correct_left(self, on_track):
         # this method is used to correct movement to stay on the line
         self.__right_wheel.forward(60)
+        self.__left_wheel.forward(100)
         while not on_track():
             continue
         sleep(self.__CORRECTION_TIME)
@@ -109,6 +110,7 @@ class Wheels:
     def correct_right(self, on_track):
         # this method is used to correct movement to stay on the line
         self.__left_wheel.forward(60)
+        self.__right_wheel.forward(100)
         while not on_track():
             continue
         sleep(self.__CORRECTION_TIME)
@@ -161,10 +163,6 @@ class LED:
     def off(self):
         self.__led.value(0)
         
-    def flash(self):
-        self.on()
-        sleep(0.5)
-        self.off()
         
 
 class HallSensor:
@@ -211,13 +209,18 @@ class ToF:
     def start_sensor(self):
         self.__vl53l0.start()
     
-    def distance(self):
+    def __distance(self):
         return self.__vl53l0.read()
+    
+    def box_detected(self):
+        return self.__distance() < 120
 
     def stop_sensor(self):
         self.__vl53l0.stop()
     
-
+if __name__ == "__main__":
+    wheels = Wheels()
+    wheels.stop()
 
 
 
