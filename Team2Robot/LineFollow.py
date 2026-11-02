@@ -147,16 +147,16 @@ class LineFollow:
                 self.__wheels.right(self._on_track, timed = True, time = 0.85)
         elif orientation == 'b':
             if finish[0] == 'l':
-                self.__wheels.right(self._on_track) # FIX THE REST OF THESE TIMED TURNS
+                self.__wheels.right(self._on_track, timed = True, time = 0.85)
             if finish[0] == 'r':
-                self.__wheels.left(self._on_track)
+                self.__wheels.left(self._on_track, timed = True, time = 0.85)
 
         if finish[0] == "ul" or finish[0] == "ur":
             upper_flag = True
             if orientation == 'l':
-                self.__wheels.right(self._on_track)
+                self.__wheels.right(self._on_track, timed = True, time = 0.85)
             if orientation == 'r':
-                self.__wheels.left(self._on_track)
+                self.__wheels.left(self._on_track, timed = True, time = 0.85)
         print("GOING FROM START")
         if finish[0] == 'r' or finish[0] == "ul":
             direction = self.__wheels.left
@@ -215,6 +215,8 @@ class LineFollow:
         self.__enter_location(rack=True)
         
     
+
+
 
 
 
