@@ -8,8 +8,8 @@ class Navigation:
     def __init__(self):
         self.__line_follow = LineFollow()
         self.__grabber = Grabber()
-        #self.__ToF = ToF(2,3)
-        #self.__hall_sensor = HallSensor(28)
+        self.__ToF = ToF(2,3)
+        self.__hall_sensor = HallSensor(28)
         left_racks = [('l', n) for n in range(3,9)]
         right_racks = [('r', n) for n in range(3,9)]
         upper_left_racks = [('ul', n) for n in range(1,7)]
@@ -19,9 +19,9 @@ class Navigation:
         self.__red = LED(10)
         self.__green = LED(11)
         
-        #self.__ToF.start_sensor()
+        self.__ToF.start_sensor()
     
-    def rack_search(self, racks, last_location, orientation):
+    def __rack_search(self, racks, last_location, orientation):
         for rack in racks[:]:
             if last_location == 0:
                 self.__line_follow.go_from_start(rack, orientation)
@@ -30,10 +30,10 @@ class Navigation:
             last_location = rack
             racks.remove(rack)
             if not self.__ToF.object_detected():
-                self.__line_follow.push_into_rack(self.__grabber)
+                self.__grabber.drop()
                 break
             else:
-                pass
+                continue
         return last_location
 
     
@@ -48,15 +48,20 @@ class Navigation:
                 self.__line_follow.go_from_start(box, orientation)
             self.__grabber.pick_up()
             sleep(1)
-            if self.__hall_sensor.polarity():
+            if not self.__hall_sensor.polarity():
+                assigned_led = self.__red
+                assigned_led.on()
                 last_location = box
                 racks = self.__racks[box[0]][0]
             else:
+                assigned_led = self.__green
+                assigned_led.on()
                 self.__line_follow.go_to_start(box)
                 last_location = 0
                 racks = self.__racks[box[0]][1]
             orientation = 'r' if box[0] == 'l' else 'r'
-            last_location = self.rack_search(racks, last_location, orientation)
+            last_location = self.__rack_search(racks, last_location, orientation)
+            assigned_led.off()
 
 
     def grabber_test(self):

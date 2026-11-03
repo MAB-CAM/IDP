@@ -146,11 +146,6 @@ class Servo:
         duty = int(self.__MIN_DUTY + (angle / self.__RANGE) * (self.__MAX_DUTY - self.__MIN_DUTY))
         self.__pwm.duty_u16(duty)
 
-    def centre(self):
-        self.set_angle(self.__CENTRE)
-
-    def release(self):
-        self.__pwm.duty_u16(0)           # no pulses -> servo goes limp
 
 
 class LED:
@@ -171,7 +166,7 @@ class HallSensor:
         self.__NORTH = 45000
         self.__SOUTH = 30000
 
-    def read(self):
+    def __read(self):
         return self.__sensor.read_u16()
     
     def polarity(self):
@@ -180,9 +175,9 @@ class HallSensor:
             reading += self.__sensor.read_u16()
         reading /= 100
         if reading > self.__NORTH:
-            return 'N'
+            return True
         elif reading < self.__SOUTH:
-            return 'S'
+            return False
         else:
             return None
 

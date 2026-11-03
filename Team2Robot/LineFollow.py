@@ -210,9 +210,6 @@ class LineFollow:
         self.__enter_location(rack, upper_flag)
 
 
-    def switch_upper_rack(self):
-        self.__exit_location(rack=True)
-        self.__enter_location(rack=True)
         
     
 
