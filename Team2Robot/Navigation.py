@@ -75,6 +75,7 @@ class Navigation:
             racks = self.__racks[box[0]][0]
             last_location = self.__rack_search(racks, last_location)
             assigned_led.off()
+        self.__line_follow.go_to_start(last_location)
 
 
     def grabber_test(self):
