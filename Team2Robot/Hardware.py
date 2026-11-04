@@ -32,12 +32,12 @@ class Wheels:
         self.__right_wheel = Motor(7,6)
         self.__CORRECTION_TIME = 0.02 
         self.__TURN_SLEEP = 0.6 
-        self.__TURN_AROUND_SLEEP = 1
+        self.__TURN_AROUND_SLEEP = 1.5
         
-    def forward(self):
+    def forward(self, speed=100):
         print("GOING FORWARD")
-        self.__left_wheel.forward()
-        self.__right_wheel.forward()
+        self.__left_wheel.forward(speed)
+        self.__right_wheel.forward(speed)
         
     def backward(self):
         print("GOING BACKWARD")
@@ -163,8 +163,8 @@ class LED:
 class HallSensor:
     def __init__(self, sensor):
         self.__sensor = ADC(sensor)
-        self.__NORTH = 45000
-        self.__SOUTH = 30000
+        self.__NORTH = 43000
+        self.__SOUTH = 32000
 
     def __read(self):
         return self.__sensor.read_u16()

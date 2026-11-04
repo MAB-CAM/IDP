@@ -20,12 +20,11 @@ class Grabber:
         sleep(1)
         self.__lift_servo.set_angle(self.__UP_ANGLE)
     
-    def pick_up(self):
-        self.__lift_servo.set_angle(self.__DOWN_ANGLE)
-        sleep(1)
-        self.__grip_servo.set_angle(self.__CLOSED_ANGLE)
-        sleep(1)
+    def up(self):
         self.__lift_servo.set_angle(self.__UP_ANGLE)
+        
+    def down(self):
+        self.__lift_servo.set_angle(self.__DOWN_ANGLE)
 
     def drop(self):
         self.__grip_servo.set_angle(self.__OPEN_ANGLE)
