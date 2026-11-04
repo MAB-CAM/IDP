@@ -151,13 +151,14 @@ class Servo:
 class LED:
     def __init__(self, led_pin):
         self.__led = Pin(led_pin, Pin.OUT)
+        self.off()
         
     def on(self):
         self.__led.value(1)
         
     def off(self):
         self.__led.value(0)
-        
+
         
 
 class HallSensor:
@@ -205,7 +206,9 @@ class ToF:
         self.__vl53l0.start()
     
     def __distance(self):
-        return self.__vl53l0.read()
+        distance = self.__vl53l0.read()
+        print(distance)
+        return distance
     
     def box_detected(self):
         return self.__distance() < 120

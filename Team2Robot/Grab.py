@@ -10,10 +10,7 @@ class Grabber:
         self.__UP_ANGLE = 30
         self.__DOWN_ANGLE = 140
         self.__REQUIREMENT_ANGLE = 200
-        self.__lift_servo.set_angle(self.__UP_ANGLE)
-        sleep(1)
-        self.__grip_servo.set_angle(self.__REQUIREMENT_ANGLE)
-        sleep(1)
+        self.requirement()
 
     def ready(self):
         self.__grip_servo.set_angle(self.__OPEN_ANGLE)
@@ -31,6 +28,12 @@ class Grabber:
         
     def close(self):
         self.__grip_servo.set_angle(self.__CLOSED_ANGLE)
+        
+    def requirement(self):
+        self.__lift_servo.set_angle(self.__UP_ANGLE)
+        sleep(1)
+        self.__grip_servo.set_angle(self.__REQUIREMENT_ANGLE)
+        sleep(1)
 
 
 
