@@ -77,11 +77,12 @@ class LineFollow:
             self.__stay_on_line()
             # keep following line until we reach end of the location to turn onto a main branch
         self.__wheels.stop()
-        
+ 
+ # drive into a location and stop in position
     def __enter_location(self, rack, upper_flag=False):
         print("ENTERING LOCATION")
         self.__wheels.forward()
-        if upper_flag:
+        if upper_flag:     # racks have no end line, so entry is timed- upper racks are shallower
             rack_time = 1200
         else:
             rack_time = 1700
@@ -90,23 +91,24 @@ class LineFollow:
             condition = lambda: ticks_diff(ticks_ms(), start_time) < rack_time
         else:
             condition = lambda: not self.__all_sensors_on()
+            # boxes end at a cross line- stop when all four line sensors see it
         while condition():
             self.__stay_on_line()
         self.__wheels.stop()
         print("LOCATION ENTERED")
         
-    def small_entry(self, rack = True):
+    def small_entry(self, rack = True): #seat the grabber at the box or rack
         time = 0.5 if rack else 0.25
         self.__wheels.forward()
         sleep(time)
         self.__wheels.stop()
         
-    def small_exit(self):
+    def small_exit(self):   # short timed reverse to back the grabber clear from the rack before turning (not needed for boxes)
         self.__wheels.backward()
         sleep(0.4)
         self.__wheels.stop()
               
-    def go_to_start(self, start):
+    def go_to_start(self, start):         # returns from a location to the start box- returns the robot's final orientation
         upper_flag = False
         if start[0] == 'l' or start[0] == "ur":
             final_orientation = 'r'
@@ -143,7 +145,7 @@ class LineFollow:
         return final_orientation
         
     
-    def go_from_start(self, finish, orientation='f'):
+    def go_from_start(self, finish, orientation='f'):   # orientation: f/b = facing forward/back in start box l/r = facing left/right (returned by go_to_start)
         upper_flag = False
         if orientation == 'f':
             if finish[0] == 'l':
@@ -198,7 +200,7 @@ class LineFollow:
         self.__enter_location(rack, upper_flag)
         
         
-    def travel_same_side(self, start, finish):
+    def travel_same_side(self, start, finish): # moving between two locations on the same side without returning to start
         upper_flag = start[0] == "ul" or start[0] == "ur"
         rack = start[1] >= 3 or upper_flag
         self.__exit_location(rack)

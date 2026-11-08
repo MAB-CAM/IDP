@@ -151,7 +151,7 @@ class Servo:
         self.__pwm.duty_u16(0)           # no pulses -> servo goes limp
 
 
-class LED:
+class LED: #dealing with LED outputs
     def __init__(self, led_pin):
         self.__led = Pin(led_pin, Pin.OUT)
         
@@ -167,16 +167,16 @@ class LED:
         self.off()
         
 
-class HallSensor:
+class HallSensor:     #Analogue Hall-effect sensor- need to set boundaries for outputs from ranges of values
     def __init__(self, sensor):
         self.__sensor = ADC(sensor)
         self.__NORTH = 45000
         self.__SOUTH = 30000
 
-    def read(self):
+    def read(self):   #reading for calibration
         return self.__sensor.read_u16()
     
-    def polarity(self):
+    def polarity(self):   # None means no magnet detected
         reading = 0
         for i in range(100):
             reading += self.__sensor.read_u16()
@@ -189,7 +189,7 @@ class HallSensor:
             return None
 
 
-class Infrared:
+class Infrared:   #Written in case we could complete traffic light test
     def __init__(self, dig_pin):
         self.__sensor = Pin(dig_pin, Pin.IN)
 
@@ -197,7 +197,7 @@ class Infrared:
         return self.__sensor.value()
 
 
-class ToF:
+class ToF: #Used to detect box, very sensitive to our line following algorithm
     def __init__(self, sda, scl):
         sda_pin = Pin(sda)
         scl_pin = Pin(scl)
